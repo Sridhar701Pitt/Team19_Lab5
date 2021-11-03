@@ -3,7 +3,7 @@
 import os
 import rospy
 import numpy as np
-from sensor_msgs.msg import PoseStamped
+from geometry_msgs.msg import PoseStamped
 from move_base_msgs.msg import MoveBaseActionResult
 
 __location__ = os.path.realpath(
