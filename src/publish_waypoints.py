@@ -41,6 +41,7 @@ def get_checkpoints():
 
 
 def goal_status_callback(goal_status_data):
+    print("Callback Received")
 
     global goal_status, goal_status_updated
     
@@ -69,7 +70,7 @@ def Init():
     waypoints_pub = rospy.Publisher("/move_base_simple/goal", PoseStamped, queue_size=10)
 
     # Subscribe to /odom
-    rospy.Subscriber("/move_base/status", MoveBaseActionResult, goal_status_callback, queue_size=1)
+    rospy.Subscriber("/move_base/result", MoveBaseActionResult, goal_status_callback, queue_size=1)
     
     waypoints = PoseStamped()
 
@@ -89,10 +90,10 @@ def Init():
                 waypoints.pose.position.x = goal[0]
                 waypoints.pose.position.y = goal[1]
                 waypoints.pose.position.z = goal[2]
-                waypoints.pose.orientation.w = goal[3]
-                waypoints.pose.orientation.x = goal[4]
-                waypoints.pose.orientation.y = goal[5]
-                waypoints.pose.orientation.z = goal[6]
+                waypoints.pose.orientation.x = goal[3]
+                waypoints.pose.orientation.y = goal[4]
+                waypoints.pose.orientation.z = goal[5]
+                waypoints.pose.orientation.w = goal[6]
 
                 waypoints_pub.publish(waypoints)
 
@@ -110,7 +111,7 @@ def Init():
                 print("\n Goal not received")
             
             if goal_status_updated == False:
-                print("\n Goal Status not updated")
+                print("\n Goal Status not updated") 
 
     rospy.spin()
 
