@@ -1,4 +1,4 @@
-image: /root/catkin_ws/src/turtlebot3_simulations/user_map_files/map.pgm
+image: /root/catkin_ws/src/team19_lab5/user_map_files/map.pgm
 resolution: 0.050000
 origin: [-10.000000, -10.000000, 0.000000]
 negate: 0
