@@ -98,6 +98,10 @@ def Init():
                 waypoints_pub.publish(waypoints)
 
                 flag += 1
+
+                if flag == 3:
+                    print("Yayyyy!!!")
+                    break
             
             else:
                 
@@ -112,8 +116,6 @@ def Init():
             
             if goal_status_updated == False:
                 print("\n Goal Status not updated") 
-
-    rospy.spin()
 
 
 if __name__ == '__main__':
