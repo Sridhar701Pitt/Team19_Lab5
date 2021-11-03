@@ -3,27 +3,50 @@
 import os
 import rospy
 import numpy as np
+from sensor_msgs.msg import PoseStamped
+from move_base_msgs.msg import MoveBaseActionResult
 
 __location__ = os.path.realpath(
     os.path.join(os.getcwd(), os.path.dirname(__file__)))
+
+
+goal_status_updated = True
+goal_subscribed = False
+goal_status = 3
+
+
+###################################
+## Call Backs and Helper Functions
+###################################
 
 # Loads goal coordinates from the text file 
 def get_checkpoints():
 
     global checkpoints, goal_subscribed
 
-    checkpoints = np.empty((3,7))
-
     with open(os.path.join(__location__, "global_waypoints.txt"), 'r') as infile:
         data = infile.readlines()
+
+        number_of_points = len(data)
+
+        checkpoints = np.empty((number_of_points,7))
+
         for i, waypoint in enumerate(data):
             checkpoints[i] = waypoint.split(',')
         
         goal_subscribed = True
 
-    #print("Checkpoints: ", checkpoints)
-
     return checkpoints 
+
+
+def goal_status_callback(goal_status_data):
+
+    global goal_status, goal_status_updated
+    
+    goal_status = goal_status_data.status.status
+    
+    goal_status_updated = True
+
 
 ###################################
 ##  Main Function
@@ -32,69 +55,62 @@ def get_checkpoints():
 def Init():
 
     goals = get_checkpoints()
+    num_of_goals = goals.shape[0]
+    flag = 0
 
     print(goals)
-
-    '''
         
-    rospy.init_node('go_to_goal_DWA', anonymous=True)
+    rospy.init_node('waypoints_publisher', anonymous=True)
 
-    # Publish angle and distance
-    velocity_pub = rospy.Publisher("/cmd_vel", Twist, queue_size=10)
-
-    # Visualise the best trajectory by publishing Marker message
-    best_trajectory_pub = rospy.Publisher("best_trajectory", Marker, queue_size = 1)
-
-    # Subscribe to LIDAR scan topic /scan
-    rospy.Subscriber("/scan", LaserScan, scan_callback, queue_size=1)
+    # Publish the waypoints 
+    waypoints_pub = rospy.Publisher("/move_base_simple/goal", PoseStamped, queue_size=10)
 
     # Subscribe to /odom
-    rospy.Subscriber("/odom", Odometry, odom_callback, queue_size=1)
+    rospy.Subscriber("/move_base/status", MoveBaseActionResult, goal_status_callback, queue_size=1)
     
-    optimal_vel = Twist()
+    waypoints = PoseStamped()
 
     while not rospy.is_shutdown():
         
-        if scan_updated == True and goal_subscribed == True and odom_updated == True:
-            dynamic_window = calc_dynamic_window(current_velocity)
+        if goal_status_updated == True and goal_subscribed == True:
 
-            goal = goal[0]
-            print("\n Goal Coordinates: ", goal[0], ",", goal[1])
+            goal = goals[flag]
+            print("\n Goal Coordinates: ", goal)
 
-            if linalg.norm(goal) > GOAL_THRESHOLD:
-                obstacles_list = scan_to_obs()
-                scan_updated = False
-            
-                best_trajectory = dwa_planning(dynamic_window, goal, obstacles_list)
+            if goal_status == 3:
                 
-                optimal_vel.linear.x = best_trajectory[0].velocity
-                optimal_vel.angular.z = best_trajectory[0].yawrate
+                rospy.sleep(2)
 
-                visualise_trajectory(best_trajectory, 1, 0, 0, best_trajectory_pub)
+                waypoints.header.frame_id = "map"
+                waypoints.header.stamp = rospy.Time.now()
+                waypoints.pose.position.x = goal[0]
+                waypoints.pose.position.y = goal[1]
+                waypoints.pose.position.z = goal[2]
+                waypoints.pose.orientation.w = goal[3]
+                waypoints.pose.orientation.x = goal[4]
+                waypoints.pose.orientation.y = goal[5]
+                waypoints.pose.orientation.z = goal[6]
 
+                waypoints_pub.publish(waypoints)
+
+                flag += 1
+            
             else:
-                optimal_vel.linear.x = 0.0
-                optimal_vel.angular.z = 0.0
+                
+                print("Goal Status: ", goal_status)
 
-            print("\n Optimal Velocity: ", optimal_vel.linear.x, "m/s", optimal_vel.angular.z, "rad/s")
-            velocity_pub.publish(optimal_vel)
-
-            odom_updated = False
+            goal_status_updated = False
 
         else:
-            
-            if scan_updated == False:
-                print("\n Scan not updated")
             
             if goal_subscribed == False:
                 print("\n Goal not received")
             
-            if odom_updated == False:
-                print("\n Odom not updated")
+            if goal_status_updated == False:
+                print("\n Goal Status not updated")
 
     rospy.spin()
 
-    '''
 
 if __name__ == '__main__':
 	try:
