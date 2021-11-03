@@ -1,3 +1,4 @@
+#!/usr/bin/env python
 # Lab 5
 
 import os
@@ -53,6 +54,8 @@ def goal_status_callback(goal_status_data):
 ###################################
 
 def Init():
+
+    global goal_status_updated
 
     goals = get_checkpoints()
     num_of_goals = goals.shape[0]
