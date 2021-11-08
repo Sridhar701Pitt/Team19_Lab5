@@ -83,7 +83,15 @@ def Init():
 
             if goal_status == 3:
                 
-                rospy.sleep(2)
+                rospy.sleep(5)
+
+                print("****************CLEARING COSTMAPS**************")
+
+                os.system("rosservice call /move_base/clear_costmaps")
+
+                rospy.sleep(5)
+
+                print("****************COSTMAPS CLEAREDS**************")
 
                 waypoints.header.frame_id = "map"
                 waypoints.header.stamp = rospy.Time.now()
@@ -110,12 +118,12 @@ def Init():
             goal_status_updated = False
 
         else:
-            
-            if goal_subscribed == False:
+            pass
+            '''if goal_subscribed == False:
                 print("\n Goal not received")
             
             if goal_status_updated == False:
-                print("\n Goal Status not updated") 
+                print("\n Goal Status not updated")''' 
 
 
 if __name__ == '__main__':
